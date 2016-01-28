@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>UNO</title>
+    <style type="text/css">
+        .card_back {
+            margin: 2px 0 0 2px;
+            width: 20px;
+            height: 40px;
+            border: 1px solid gray;
+        }
+        .player_other {
+            margin: 2px 0 0 2px;
+            width: 200px;
+            height: 200px;
+        }
+        .card {
+            margin: 2px 0 0 2px;
+			position: relative;
+			border: 1px solid gray;
+			-moz-border-radius: 15px;      /* Gecko browsers */
+			-webkit-border-radius: 15px;   /* Webkit browsers */
+			border-radius:15px;            /* W3C syntax */
+        }
+		
+		.card_background {
+		  position: relative;
+		  margin: 0;
+		  overflow: hidden;
+		  border: 6px solid white;
+		  border-radius:15px; 
+		  width: 100px;
+          height: 160px;
+		  text-align: center;
+		}
+
+		.Absolute-Center {
+		  margin: auto;
+		  position: absolute;
+		  top: 0; left: 0; bottom: 0; right: 0;
+		}
+		
+		.Table-Center{
+			display: table-cell;
+			text-align: center;
+			vertical-align: middle;
+			overflow: hidden;
+		}
+		
+		.center_rank {
+			/* z-index:1; */
+			height: 100px;
+			display: inline-block;
+			vertical-align: middle; /* 该属性定义行内元素的基线相对于该元素所在行的基线的垂直对齐。 */
+			line-height: 100px;
+			/* border: 1px solid green; */
+			font-weight: 900;
+			font-size: 5em;
+        }
+		.left-top-rank{
+			position: absolute;
+			font-weight: 600;
+			font-size: 2em;
+			color: white;
+			top: 2px; left: 2px;
+		}
+		.right-bottom-rank{
+			position: absolute;
+			font-weight: 600;
+			font-size: 2em;
+			color: white;
+			bottom: 2px; right: 2px;
+		}
+		span {
+		  display: inline-block;
+		  vertical-align: middle;
+		  line-height: normal;      
+		}
+
+		.center_oval {
+			/* z-index:1; */
+		    width: 80%;
+			height: 78%;
+			background: white;
+	        -moz-border-radius: 50% / 50%;
+	        -webkit-border-radius: 50%;
+	        border-radius: 60% / 60%;
+			
+			-webkit-transform: rotate(30deg);
+			/* border: 1px solid blue; */
+		}
+    </style>
+
+</head>
+
+<body>
+    <div id="out"></div>
+    <div id="desk" style="position: relative; border: 1px solid indigo; width:100%; height:100%;">
+        <div class="player_other" style="position: absolute; left:0px" id="player_1">
+            Remaining: 7
+            <div class=".card_back"></div>
+        </div>
+        <div class="player_other" style="position: absolute; right:0px" id="player_2">
+            Remaining: 7
+        </div>
+        <div class="player_other" style="position: absolute; bottom:0px" id="player_3">
+            Remaining: 7
+        </div>
+        <div class="player_me" id="player_0" style="position: relative;">
+            <div class="card" id="ordinary_card_template" style="position: absolute;">
+				<div class="card_background" style="background-color: red;">
+					<div class="center_oval Absolute-Center"></div>
+					<em class="center_rank Absolute-Center" name="cardRank">0</em>
+					<em class="left-top-rank" name="cardRank">0</em>
+					<em class="right-bottom-rank" name="cardRank">0</em>
+				</div>
+			</div>
+			 <div class="card" style="position: absolute; left: 30px;">
+				<div class="card_background" style="background-color: blue;">
+					<div class="center_oval Absolute-Center"></div>
+					<em class="center_rank Absolute-Center" name="cardRank">2</em>
+					<em class="left-top-rank" name="cardRank">2</em>
+					<em class="right-bottom-rank" name="cardRank">2</em>
+				</div>
+			</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+	
+		function test(){
+			var cards = generateDeck();
+			//console.log("generateDeck: %o", cards);
+			cards = shuffle(cards);
+			//console.log("After shuffle: %o", cards);
+			var players = new Array(4);
+			players[0] = cards.splice(0, 7);
+			players[1] = cards.splice(0, 7);
+			players[2] = cards.splice(0, 7);
+			players[3] = cards.splice(0, 7);
+			
+			document.getElementById("out").innerHTML = players.join("<br/>");
+		}
+		
+		
+		// Range: color := [0, 4], rank := [0, 14], 
+		// Comibation: 
+		//  # color_0_rank_13 * 4, color_0_rank_14 * 4
+		//  # color_1-4_rank_0;
+		//  # color_1-4_rank_1-12 * 2;
+		function generateDeck() {
+			var cards = [];
+			var blackWildCard = 13;
+			var blackWildDrawFourCard = 14;
+			cards.push(blackWildCard, blackWildCard, blackWildCard, blackWildCard);
+			cards.push(blackWildDrawFourCard, blackWildDrawFourCard, blackWildDrawFourCard, blackWildDrawFourCard);
+			for(var color = 1; color < 1 + 4; color++){
+				cards.push((color << 8));
+			for(var rank = 1; rank < 1 + 9 + 3; rank++){
+					cards.push((color << 8) + rank);
+					cards.push((color << 8) + rank);
+				} 
+			} 
+			return cards;
+		}
+		//https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+		//http://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array-in-javascript
+		//https://github.com/coolaj86/knuth-shuffle
+		function shuffle(array) {
+			var currentIndex = array.length, temporaryValue, randomIndex;
+
+			// While there remain elements to shuffle...
+			while (0 !== currentIndex) {
+
+				// Pick a remaining element...
+				randomIndex = Math.floor(Math.random() * currentIndex);
+				currentIndex -= 1;
+
+				// And swap it with the current element.
+				temporaryValue = array[currentIndex];
+				array[currentIndex] = array[randomIndex];
+				array[randomIndex] = temporaryValue;
+			}
+
+			return array;
+		}
+			
+		/** The red, green, blue, yellow are ordinary cards, the black cards are wild */
+		var UnoCardColor;
+		(function (UnoCardColor) {
+			UnoCardColor[UnoCardColor["RED"] = 0] = "RED";
+			UnoCardColor[UnoCardColor["GREEN"] = 1] = "GREEN";
+			UnoCardColor[UnoCardColor["BLUE"] = 2] = "BLUE";
+			UnoCardColor[UnoCardColor["YELLOW"] = 3] = "YELLOW";
+			UnoCardColor[UnoCardColor["BLACK"] = 4] = "BLACK";
+		})(UnoCardColor || (UnoCardColor = {}));
+		/**
+		 * The ranks in each color are zero to nine, "Skip", "Draw Two" and
+		 * "Reverse" (the last three of these being classified as
+		 * "action cards"). In addition, the deck contains four each of "Wild"
+		 * and "Wild Draw Four" cards.
+		 */
+		var UnoCardRank;
+		(function (UnoCardRank) {
+			UnoCardRank[UnoCardRank["ZERO"] = 0] = "ZERO";
+			UnoCardRank[UnoCardRank["ONE"] = 1] = "ONE";
+			UnoCardRank[UnoCardRank["TWO"] = 2] = "TWO";
+			UnoCardRank[UnoCardRank["THREE"] = 3] = "THREE";
+			UnoCardRank[UnoCardRank["FOUR"] = 4] = "FOUR";
+			UnoCardRank[UnoCardRank["FIVE"] = 5] = "FIVE";
+			UnoCardRank[UnoCardRank["SIX"] = 6] = "SIX";
+			UnoCardRank[UnoCardRank["SEVEEN"] = 7] = "SEVEEN";
+			UnoCardRank[UnoCardRank["EIGTH"] = 8] = "EIGTH";
+			UnoCardRank[UnoCardRank["NINE"] = 9] = "NINE";
+			UnoCardRank[UnoCardRank["SKIP"] = 10] = "SKIP";
+			UnoCardRank[UnoCardRank["DRAW_TWO"] = 11] = "DRAW_TWO";
+			UnoCardRank[UnoCardRank["REVERSE"] = 12] = "REVERSE";
+			UnoCardRank[UnoCardRank["WILD"] = 13] = "WILD";
+			UnoCardRank[UnoCardRank["WILD_DRAW_FOUR"] = 14] = "WILD_DRAW_FOUR";
+		})(UnoCardRank || (UnoCardRank = {}));
+		/**
+		 * UNO每副游戏牌共有108张卡，游戏牌分四种颜色：红色、绿色、蓝色及黄色，每种颜色各有25张牌，其中19张为数字牌（0牌
+		 * 有一张，1-9有两张），其余6张为功能牌："skip"（跳牌）、"draw two"（罚牌2张）及"reverse"（反转出牌方向）。另
+		 * 有黑色特别牌8张："wild"（转色）及"wild draw four"（转色及罚牌4张），每种各4张。
+		 */
+		var UnoCard = (function () {
+			function UnoCard(color, rank) {
+				this.color = color;
+				this.rank = rank;
+			}
+			UnoCard.prototype.getColor = function () { return this.color; };
+			UnoCard.prototype.getRank = function () { return this.rank; };
+			/** 生成一副牌 */
+			UnoCard.generateDeck = function () {
+				var unoCards = [];
+				var idx = 0;
+				function generateOrdinaryCards(color) {
+					unoCards[idx++] = new UnoCard(color, 0);
+					for (var rank = 1; rank < 1 + 9 + 3; rank++) {
+						var colorCard = new UnoCard(color, rank);
+						unoCards[idx++] = colorCard;
+						unoCards[idx++] = colorCard;
+					}
+				}
+				//red, green, blue, yellow cards: 0, 1-9 * 2, actions
+				generateOrdinaryCards(UnoCardColor.RED);
+				generateOrdinaryCards(UnoCardColor.GREEN);
+				generateOrdinaryCards(UnoCardColor.BLUE);
+				generateOrdinaryCards(UnoCardColor.YELLOW);
+				//black cards: two kinds of wild cards * 4
+				var blackWildCard = new UnoCard(UnoCardColor.BLACK, UnoCard.WILD);
+				var blackWildDrawFourCard = new UnoCard(UnoCardColor.BLACK, UnoCard.WILD_DRAW_FOUR);
+				unoCards.push(blackWildCard, blackWildCard, blackWildCard, blackWildCard);
+				unoCards.push(blackWildDrawFourCard, blackWildDrawFourCard, blackWildDrawFourCard, blackWildDrawFourCard);
+				return unoCards;
+			};
+			/** Rank for the action cards and the black cards: 10 - 12, 13 - 14*/
+			UnoCard.SKIP = 10; // the action cards
+			UnoCard.DRAW_TWO = 11; // the action cards
+			UnoCard.REVERSE = 12; // the action cards
+			UnoCard.WILD = 13; //only for the black cards
+			UnoCard.WILD_DRAW_FOUR = 14; //only for the black cards
+			return UnoCard;
+		})();
+		
+		/** UnoPlayer */
+		var UnoPlayer = (function () {
+			function UnoPlayer(name) {
+				this.name = name;
+			}
+			UnoPlayer.prototype.setCards = function (cards) {
+				this.cards = cards;
+			};
+			UnoPlayer.prototype.getCards = function () {
+				return this.cards;
+			};
+			UnoPlayer.prototype.discard = function (card) {
+				return;
+			};
+			UnoPlayer.prototype.collision = function (card) {
+				return;
+			};
+			return UnoPlayer;
+		})();
+
+		
+		function createCardStyle(){
+			
+		}
+		
+		function createCard(color, rank){
+			var cardTemplate = document.getElementById("ordinary_card_template");
+			//true克隆节点及其属性，以及后代; false克隆节点及其后代
+			var cardElement = cardTemplate.cloneNode(true);
+			// background: red; 
+			var cardRanks = cardElement.getElementsByTagName("em");
+			//cardTemplate.getElementsByClassName("card-rank");
+			for(var idx = cardRanks.length; --idx>=0; ){
+				cardRanks[idx].innerText = rank;
+			}
+			var background = cardElement.getElementsByClassName("card_background")[0];
+			background.style.backgroundColor = UnoCardColor[color];
+			
+			cardElement.id = 'card_' + color + rank;
+			return cardElement;
+		}
+		//
+		var players = []; //new Array(playerCount);
+		players.push(new UnoPlayer("me"));
+		players.push(new UnoPlayer("other_player_1"));
+		players.push(new UnoPlayer("other_player_2"));
+		players.push(new UnoPlayer("other_player_3"));
+		//To start a hand
+		var cards = UnoCard.generateDeck();
+		var cardCountEachPlayer = 7;
+		cards = shuffle(cards);
+		// DEBUG
+		// console.log(cards);
+		//Seven cards are dealt out to each player.
+		var playerCount = players.length;
+		for (var playerIndex = 0; playerIndex < playerCount; playerIndex++) {
+			players[playerIndex].setCards(cards.splice(0, cardCountEachPlayer));
+		}
+		// DEBUG
+		// console.log(players);
+		//TODO perfermance
+		var playerElement = document.getElementById("player_0");
+		var player = players[0], playerCards = player.getCards();
+		for(var idx = 0; idx < playerCards.length; idx++){
+			var card = playerCards[idx];
+			var cardElement = createCard(card.getColor(), card.getRank());
+			cardElement.style.left = idx * 30 + 'px';
+			playerElement.appendChild(cardElement);
+		}
+		
+		
+		//Short answer, this is compatible "on all browsers" (specifically, IE8/7):
+
+		/** 
+		 * http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-in-javascript-and-apply 
+		 * @example createClass('.whatever',"background-color: green;");
+		 */
+		function createClass(name,rules){
+			var style = document.createElement('style');
+			style.type = 'text/css';
+			document.getElementsByTagName('head')[0].appendChild(style);
+			if(!(style.sheet||{}).insertRule) 
+				(style.styleSheet || style.sheet).addRule(name, rules);
+			else
+				style.sheet.insertRule(name+"{"+rules+"}",0);
+		}
+		/** 
+		 * And this final bit applies the class to an element:
+		 * 
+         * Here's a little test page as well: https://gist.github.com/shadybones/9816763
+		 * 
+		 * The key little bit is the fact that style elements have a "styleSheet"/"sheet" 
+		 * property which you can use to to add/remove rules on.
+		 */
+		 function applyClass(name,element,doRemove){
+			if(typeof element.valueOf() == "string"){
+				element = document.getElementById(element);
+			}
+			if(!element) return;
+			if(doRemove){
+				element.className = element.className.replace(new RegExp("\\b" + name + "\\b","g"));
+			}else{      
+				element.className = element.className + " " + name;
+			}
+		}
+    </script>
+</body>
+
+</html>
