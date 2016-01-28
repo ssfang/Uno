@@ -1,0 +1,12 @@
+[submodule "Poker/Poker.JS"]
+	path = Poker/Poker.JS
+	url = https://github.com/Tairraos/Poker.JS.git
+[submodule "Poker/Helveticards"]
+	path = Poker/Helveticards
+	url = https://github.com/zachwaugh/Helveticards.git
+[submodule "Poker/js_poker"]
+	path = Poker/js_poker
+	url = https://github.com/tansey/js_poker.git
+[submodule "Poker/2DPoker"]
+	path = Poker/2DPoker
+	url = https://github.com/bwyoon/2DPoker.git
